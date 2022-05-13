@@ -2,6 +2,11 @@
 name = "ordered_map"
 version = "0.1.0"
 edition = "2021"
+description = "A HashMap/Vector hybrid: efficient, ordered key-value data storage."
+license = "MIT"
+homepage = "https://github.com/skyeterran/ordered-map"
+repository = "https://github.com/skyeterran/ordered-map"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
