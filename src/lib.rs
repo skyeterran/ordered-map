@@ -18,6 +18,32 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         }
     }
 
+    /// Creates a new, empty map with the specified capacity.
+    pub fn with_capacity(capacity: usize) -> OrderedMap<K, V> {
+        OrderedMap {
+            entries: Vec::with_capacity(capacity),
+            order: HashMap::with_capacity(capacity)
+        }
+    }
+
+    /// Returns the number of elements the map can hold without reallocating.
+    pub fn capacity(&self) -> usize {
+        self.entries.capacity().min(self.order.capacity())
+    }
+
+    /// Returns `true` if the map contains no elements.
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    /// Clears the map, removing all entries.
+    /// 
+    /// Keep in mind this will not reallocate memory.
+    pub fn clear(&mut self) {
+        self.entries.clear();
+        self.order.clear();
+    }
+
     /// Inserts an entry into the map, or replaces an existing one
     pub fn insert(&mut self, k: K, v: V) {
         match self.order.get(&calculate_hash(&k)) {
