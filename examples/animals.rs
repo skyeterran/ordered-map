@@ -15,4 +15,12 @@ fn main() {
     for (k, v) in map.into_iter() {
         println!("{}: {}", k, v);
     }
+
+    map.remove_entry("Salad");
+
+    println!("{:#?}", map);
+
+    for (k, v) in map.into_iter() {
+        println!("{}: {}", k, v);
+    }
 }

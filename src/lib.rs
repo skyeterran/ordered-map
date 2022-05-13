@@ -35,7 +35,46 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
     /// Gets the value associated with the provided key, if it exists
     pub fn get(&self, k: K) -> Option<&V> {
         match self.order.get(&calculate_hash(&k)) {
-            Some(entry_index) => Some(&self.entries[*entry_index].1),
+            Some(index) => Some(&self.entries[*index].1),
+            None => None
+        }
+    }
+
+    /// Removes a key from the map, returning the stored key and value if the key was previously in the map.
+    pub fn remove_entry(&mut self, k: K) -> Option<(K, V)> {
+        let key_hash = calculate_hash(&k);
+        
+        let index_opt = match self.order.get(&key_hash) {
+            Some(index) => Some(*index),
+            None => None
+        };
+
+        match index_opt {
+            Some(index) => {
+                // Get the entry and then remove it from the map entirely before returning the value
+                let value = self.entries.remove(index);
+                
+                // Remove the corresponding entry from the order hashmap
+                self.order.remove(&key_hash);
+
+                // Update the index on all the remaining entries which followed the one we just removed
+                for (i, (k, v)) in self.entries.iter().enumerate() {
+                    if i >= index {
+                        self.order.insert(calculate_hash(&self.entries[i].0), i);
+                    }
+                }
+
+                // Now return the value we retained earlier
+                Some(value)
+            },
+            None => None
+        }
+    }
+
+    /// Removes a key from the map, returning the stored value if the key was previously in the map.
+    pub fn remove(&mut self, k: K) -> Option<V> {
+        match self.remove_entry(k) {
+            Some((_, v)) => Some(v),
             None => None
         }
     }
