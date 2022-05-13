@@ -1,20 +1,20 @@
-use ordered_map::*;
+use hashvec::*;
 
 fn main() {
-    // Create a new map containing pairs of animal names and species
-    let mut map: OrderedMap<&'static str, &'static str> = OrderedMap::new();
+    // Create a new hashvec containing pairs of animal names and species
+    let mut hashvec: HashVec<&'static str, &'static str> = HashVec::new();
 
-    // Insert values into the map
-    map.insert("Doug", "Kobold");
-    map.insert("Skye", "Jaguar");
-    map.insert("Lee", "Shiba");
-    map.insert("Sock", "Man");
-    map.insert("Salad", "Dog");
-    map.insert("Finn", "Human");
-    map.insert("Jake", "Dog");
+    // Insert values into the hashvec
+    hashvec.insert("Doug", "Kobold");
+    hashvec.insert("Skye", "Jaguar");
+    hashvec.insert("Lee", "Shiba");
+    hashvec.insert("Sock", "Man");
+    hashvec.insert("Salad", "Dog");
+    hashvec.insert("Finn", "Human");
+    hashvec.insert("Jake", "Dog");
     
     // Access a value by key
-    match map.get("Finn") {
+    match hashvec.get("Finn") {
         Some(value) => {
             assert_eq!(*value, "Human");
         },
@@ -22,31 +22,31 @@ fn main() {
     }
 
     // Access an entry by index
-    let lee_value = map[2];
+    let lee_value = hashvec[2];
     assert_eq!(lee_value, ("Lee", "Shiba"));
 
     // Get the index of a key
-    let lee_index = map.index("Lee").unwrap();
+    let lee_index = hashvec.index("Lee").unwrap();
     assert_eq!(lee_index, 2);
     
     // Mutate a value
-    match map.get_mut("Sock") {
+    match hashvec.get_mut("Sock") {
         Some(value) => {
             *value = "Guinea Pig";
         },
         None => {}
     }
-    assert_eq!(*map.get("Sock").unwrap(), "Guinea Pig");
+    assert_eq!(*hashvec.get("Sock").unwrap(), "Guinea Pig");
 
     // Remove a value
-    map.remove("Doug");
-    assert_eq!(map.get("Doug"), None);
+    hashvec.remove("Doug");
+    assert_eq!(hashvec.get("Doug"), None);
     
-    // Iterate over each of the key-value pairs in the map
-    for (k, v) in map.into_iter() {
+    // Iterate over each of the key-value pairs in the hashvec
+    for (k, v) in hashvec.into_iter() {
         println!("{} is a {}!", k, v);
     }
     
-    // Clear the map
-    map.clear();
+    // Clear the hashvec
+    hashvec.clear();
 }

@@ -1,5 +1,5 @@
 [package]
-name = "ordered_map"
+name = "hashvec"
 version = "0.1.0"
 edition = "2021"
 description = "A HashMap/Vector hybrid: efficient, ordered key-value data storage."

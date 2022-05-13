@@ -1,20 +1,20 @@
-//! An [`OrderedMap`] is a hash map / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the map. It's essentially a vector whose values can be inserted/retrieved with keys.
+//! An [`HashVec`] is a hash hashvec / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the hashvec. It's essentially a vector whose values can be inserted/retrieved with keys.
 //! # Example
 //! ```
-//! // Create a new map containing pairs of animal names and species
-//! let mut map: OrderedMap<&'static str, &'static str> = OrderedMap::new();
+//! // Create a new hashvec containing pairs of animal names and species
+//! let mut hashvec: HashVec<&'static str, &'static str> = HashVec::new();
 //! 
-//! // Insert values into the map
-//! map.insert("Doug", "Kobold");
-//! map.insert("Skye", "Jaguar");
-//! map.insert("Lee", "Shiba");
-//! map.insert("Sock", "Man");
-//! map.insert("Salad", "Dog");
-//! map.insert("Finn", "Human");
-//! map.insert("Jake", "Dog");
+//! // Insert values into the hashvec
+//! hashvec.insert("Doug", "Kobold");
+//! hashvec.insert("Skye", "Jaguar");
+//! hashvec.insert("Lee", "Shiba");
+//! hashvec.insert("Sock", "Man");
+//! hashvec.insert("Salad", "Dog");
+//! hashvec.insert("Finn", "Human");
+//! hashvec.insert("Jake", "Dog");
 //! 
 //! // Access a value by key
-//! match map.get("Finn") {
+//! match hashvec.get("Finn") {
 //!     Some(value) => {
 //!         assert_eq!(*value, "Human");
 //!     },
@@ -22,32 +22,32 @@
 //! }
 //! 
 //! // Access an entry by index
-//! let lee_value = map[2];
+//! let lee_value = hashvec[2];
 //! assert_eq!(lee_value, ("Lee", "Shiba"));
 //! 
 //! // Get the index of a key
-//! let lee_index = map.index("Lee").unwrap();
+//! let lee_index = hashvec.index("Lee").unwrap();
 //! assert_eq!(lee_index, 2);
 //! 
 //! // Mutate a value
-//! match map.get_mut("Sock") {
+//! match hashvec.get_mut("Sock") {
 //!     Some(value) => {
 //!         *value = "Guinea Pig";
 //!     },
 //!     None => {}
 //! }
-//! assert_eq!(*map.get("Sock").unwrap(), "Guinea Pig");
+//! assert_eq!(*hashvec.get("Sock").unwrap(), "Guinea Pig");
 //! 
 //! // Remove a value
-//! map.remove("Doug");
-//! assert_eq!(map.get("Doug"), None);
+//! hashvec.remove("Doug");
+//! assert_eq!(hashvec.get("Doug"), None);
 //! 
-//! // Iterate over each of the key-value pairs in the map
-//! for (k, v) in map.into_iter() {
+//! // Iterate over each of the key-value pairs in the hashvec
+//! for (k, v) in hashvec.into_iter() {
 //!     println!("{} is a {}!", k, v);
 //! }
 //! 
-//! // Clear the map
+//! // Clear the hashvec
 //! map.clear();
 //! ```
 
@@ -57,39 +57,39 @@ use std::hash::{Hash, Hasher};
 use core::ops::{Index, IndexMut};
 
 #[derive(Debug)]
-pub struct OrderedMap<K: Eq + Hash, V> {
+pub struct HashVec<K: Eq + Hash, V> {
     entries: Vec<(K, V)>,
     order: HashMap<u64, usize>
 }
 
-impl<K: Eq + Hash, V> OrderedMap<K, V> {
+impl<K: Eq + Hash, V> HashVec<K, V> {
     /// Creates a new, empty map.
-    pub fn new() -> OrderedMap<K, V> {
-        OrderedMap {
+    pub fn new() -> HashVec<K, V> {
+        HashVec {
             entries: Vec::new(),
             order: HashMap::new()
         }
     }
 
-    /// Creates a new, empty map with the specified capacity.
-    pub fn with_capacity(capacity: usize) -> OrderedMap<K, V> {
-        OrderedMap {
+    /// Creates a new, empty hashvec with the specified capacity.
+    pub fn with_capacity(capacity: usize) -> HashVec<K, V> {
+        HashVec {
             entries: Vec::with_capacity(capacity),
             order: HashMap::with_capacity(capacity)
         }
     }
 
-    /// Returns the number of elements the map can hold without reallocating.
+    /// Returns the number of elements the hashvec can hold without reallocating.
     pub fn capacity(&self) -> usize {
         self.entries.capacity().min(self.order.capacity())
     }
 
-    /// Returns `true` if the map contains no elements.
+    /// Returns `true` if the hashvec contains no elements.
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
-    /// Clears the map, removing all entries.
+    /// Clears the hashvec, removing all entries.
     /// 
     /// Keep in mind this will not reallocate memory.
     pub fn clear(&mut self) {
@@ -97,15 +97,15 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         self.order.clear();
     }
 
-    /// Inserts an entry into the map, or replaces an existing one
+    /// Inserts an entry into the hashvec, or replaces an existing one
     pub fn insert(&mut self, k: K, v: V) {
         match self.order.get(&calculate_hash(&k)) {
             Some(index) => {
-                // If the entry was already in the map, update it in-place
+                // If the entry was already in the hashvec, update it in-place
                 self.entries[*index] = (k, v);
             },
             None => {
-                // If the entry wasn't in the map already, add it
+                // If the entry wasn't in the hashvec already, add it
                 self.order.insert(calculate_hash(&k), self.entries.len());
                 self.entries.push((k, v));
             }
@@ -128,7 +128,7 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         }
     }
 
-    /// Removes a key from the map, returning the stored key and value if the key was previously in the map.
+    /// Removes a key from the hashvec, returning the stored key and value if the key was previously in the hashvec.
     pub fn remove_entry(&mut self, k: K) -> Option<(K, V)> {
         let key_hash = calculate_hash(&k);
         
@@ -139,7 +139,7 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
 
         match index_opt {
             Some(index) => {
-                // Get the entry and then remove it from the map entirely before returning the value
+                // Get the entry and then remove it from the hashvec entirely before returning the value
                 let value = self.entries.remove(index);
                 
                 // Remove the corresponding entry from the order hashmap
@@ -159,7 +159,7 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         }
     }
     
-    // Swaps the positions of entries `a` and `b` within the map.
+    // Swaps the positions of entries `a` and `b` within the hashvec.
     //pub fn swap(&mut self, a: K, b: K) {
         //
     //}
@@ -172,7 +172,7 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         }
     }
 
-    /// Removes a key from the map, returning the stored value if the key was previously in the map.
+    /// Removes a key from the hashvec, returning the stored value if the key was previously in the hashvec.
     pub fn remove(&mut self, k: K) -> Option<V> {
         match self.remove_entry(k) {
             Some((_, v)) => Some(v),
@@ -181,24 +181,24 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V> Index<usize> for OrderedMap<K, V> {
+impl<K: Eq + Hash, V> Index<usize> for HashVec<K, V> {
     type Output = (K, V);
     fn index(&self, i: usize) -> &(K, V) {
         &self.entries[i]
     }
 }
 
-impl<K: Eq + Hash, V> IndexMut<usize> for OrderedMap<K, V> {
+impl<K: Eq + Hash, V> IndexMut<usize> for HashVec<K, V> {
     fn index_mut(&mut self, i: usize) -> &mut (K, V) {
         &mut self.entries[i]
     }
 }
 
-impl<'a, K: Eq + Hash, V> IntoIterator for &'a OrderedMap<K, V> {
+impl<'a, K: Eq + Hash, V> IntoIterator for &'a HashVec<K, V> {
     type Item = (&'a K, &'a V);
-    type IntoIter = OrderedMapIter<'a, K, V>;
+    type IntoIter = HashVecIter<'a, K, V>;
     fn into_iter(self) -> Self::IntoIter {
-        OrderedMapIter {
+        HashVecIter {
             ordered_map: self,
             index: 0
         }
@@ -206,12 +206,12 @@ impl<'a, K: Eq + Hash, V> IntoIterator for &'a OrderedMap<K, V> {
 }
 
 // Wrapping iterator struct
-pub struct OrderedMapIter<'a, K: Eq + Hash, V> {
-    ordered_map: &'a OrderedMap<K, V>,
+pub struct HashVecIter<'a, K: Eq + Hash, V> {
+    ordered_map: &'a HashVec<K, V>,
     index: usize
 }
 
-impl<'a, K: Eq + Hash, V> Iterator for OrderedMapIter<'a, K, V> {
+impl<'a, K: Eq + Hash, V> Iterator for HashVecIter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         let result = match self.ordered_map.entries.get(self.index) {
