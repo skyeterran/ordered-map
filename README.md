@@ -1,1 +1,2 @@
 # ordered-map
+An OrderedMap is a hash map / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the map. It's essentially a vector whose values can be inserted/retrieved with keys.
