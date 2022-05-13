@@ -2,7 +2,7 @@
 A HashVec is a hash map / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the map. It's essentially a vector whose values can be inserted/retrieved with keys.
 
 ## Example
-```
+```rust
 // Create a new hashvec containing pairs of animal names and species
 let mut hashvec: HashVec<&'static str, &'static str> = HashVec::new();
 
