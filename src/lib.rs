@@ -1,3 +1,56 @@
+//! An [`OrderedMap`] is a hash map / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the map. It's essentially a vector whose values can be inserted/retrieved with keys.
+//! # Example
+//! ```
+//! // Create a new map containing pairs of animal names and species
+//! let mut map: OrderedMap<&'static str, &'static str> = OrderedMap::new();
+//! 
+//! // Insert values into the map
+//! map.insert("Doug", "Kobold");
+//! map.insert("Skye", "Jaguar");
+//! map.insert("Lee", "Shiba");
+//! map.insert("Sock", "Man");
+//! map.insert("Salad", "Dog");
+//! map.insert("Finn", "Human");
+//! map.insert("Jake", "Dog");
+//! 
+//! // Access a value by key
+//! match map.get("Finn") {
+//!     Some(value) => {
+//!         assert_eq!(*value, "Human");
+//!     },
+//!     None => {}
+//! }
+//! 
+//! // Access an entry by index
+//! let lee_value = map[2];
+//! assert_eq!(lee_value, ("Lee", "Shiba"));
+//! 
+//! // Get the index of a key
+//! let lee_index = map.index("Lee").unwrap();
+//! assert_eq!(lee_index, 2);
+//! 
+//! // Mutate a value
+//! match map.get_mut("Sock") {
+//!     Some(value) => {
+//!         *value = "Guinea Pig";
+//!     },
+//!     None => {}
+//! }
+//! assert_eq!(*map.get("Sock").unwrap(), "Guinea Pig");
+//! 
+//! // Remove a value
+//! map.remove("Doug");
+//! assert_eq!(map.get("Doug"), None);
+//! 
+//! // Iterate over each of the key-value pairs in the map
+//! for (k, v) in map.into_iter() {
+//!     println!("{} is a {}!", k, v);
+//! }
+//! 
+//! // Clear the map
+//! map.clear();
+//! ```
+
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -105,6 +158,19 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
             None => None
         }
     }
+    
+    // Swaps the positions of entries `a` and `b` within the map.
+    //pub fn swap(&mut self, a: K, b: K) {
+        //
+    //}
+
+    /// Returns the index of the provided key, if the key exists.
+    pub fn index(&self, k: K) -> Option<usize> {
+        match self.order.get(&calculate_hash(&k)) {
+            Some(index) => Some(*index),
+            None => None
+        }
+    }
 
     /// Removes a key from the map, returning the stored value if the key was previously in the map.
     pub fn remove(&mut self, k: K) -> Option<V> {
@@ -116,15 +182,15 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
 }
 
 impl<K: Eq + Hash, V> Index<usize> for OrderedMap<K, V> {
-    type Output = V;
-    fn index(&self, i: usize) -> &V {
-        &self.entries[i].1
+    type Output = (K, V);
+    fn index(&self, i: usize) -> &(K, V) {
+        &self.entries[i]
     }
 }
 
 impl<K: Eq + Hash, V> IndexMut<usize> for OrderedMap<K, V> {
-    fn index_mut(&mut self, i: usize) -> &mut V {
-        &mut self.entries[i].1
+    fn index_mut(&mut self, i: usize) -> &mut (K, V) {
+        &mut self.entries[i]
     }
 }
 
