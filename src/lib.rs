@@ -1,4 +1,4 @@
-//! An [`HashVec`] is a hash hashvec / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the hashvec. It's essentially a vector whose values can be inserted/retrieved with keys.
+//! An [`HashVec`] is a hashvec / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the hashvec. It's essentially a vector whose values can be inserted/retrieved with keys.
 //! # Example
 //! ```
 //! // Create a new hashvec containing pairs of animal names and species
