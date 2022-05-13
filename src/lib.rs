@@ -10,6 +10,7 @@ pub struct OrderedMap<K: Eq + Hash, V> {
 }
 
 impl<K: Eq + Hash, V> OrderedMap<K, V> {
+    /// Creates a new, empty map.
     pub fn new() -> OrderedMap<K, V> {
         OrderedMap {
             entries: Vec::new(),
@@ -32,10 +33,18 @@ impl<K: Eq + Hash, V> OrderedMap<K, V> {
         }
     }
 
-    /// Gets the value associated with the provided key, if it exists
+    /// Returns a reference to the value corresponding to the key, if it exists.
     pub fn get(&self, k: K) -> Option<&V> {
         match self.order.get(&calculate_hash(&k)) {
             Some(index) => Some(&self.entries[*index].1),
+            None => None
+        }
+    }
+
+    /// Returns a mutable reference to the value corresponding to the key, if it exists.
+    pub fn get_mut(&mut self, k: K) -> Option<&mut V> {
+        match self.order.get(&calculate_hash(&k)) {
+            Some(index) => Some(&mut self.entries[*index].1),
             None => None
         }
     }

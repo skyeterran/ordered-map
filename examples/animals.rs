@@ -7,7 +7,6 @@ fn main() {
     map.insert("Lee", "Shiba");
     map.insert("Sock", "Man");
     map.insert("Salad", "Dog");
-    map.insert("Salad", "Coyote");
     map.insert("Lee", "Human");
 
     println!("{:#?}", map);
@@ -16,7 +15,13 @@ fn main() {
         println!("{}: {}", k, v);
     }
 
-    map.remove_entry("Salad");
+    // Change the kind of animal that Sock is
+    match map.get_mut("Sock") {
+        Some(value) => {
+            *value = "Guinea Pig";
+        },
+        None => {}
+    }
 
     println!("{:#?}", map);
 
