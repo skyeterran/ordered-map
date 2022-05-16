@@ -1,23 +1,25 @@
 //! A [`HashVec`] is a hash map / dictionary whose key-value pairs are stored (and can be iterated over) in a fixed order, by default the order in which they were inserted into the hashvec. It's essentially a vector whose values can be inserted/retrieved with keys.
 //! # Example
 //! ```
-//! use hashvec::HashVec;
+//! use hashvec::*;
 //! 
 //! // Create a new hashvec containing pairs of animal names and species
-//! let mut hashvec: HashVec<&'static str, &'static str> = HashVec::new();
+//! // The hashvec! macro acts like vec!, but with key-value tuple pairs
+//! let mut hashvec: HashVec<&'static str, &'static str> = hashvec![
+//!     ("Doug", "Kobold"),
+//!     ("Skye", "Hyena"),
+//!     ("Lee", "Shiba"),
+//!     ("Sock", "Man"),
+//!     ("Salad", "Wolf"),
+//!     ("Finn", "Human")
+//! ];
 //! 
-//! // Insert values into the hashvec (HashMap-style)
+//! // Insert a value into the hashvec (HashMap-style)
 //! // Inserting overwrites existing keys' entries in-place
-//! hashvec.insert("Doug", "Kobold");
-//! hashvec.insert("Skye", "Hyena");
-//! hashvec.insert("Lee", "Shiba");
-//! hashvec.insert("Sock", "Man");
+//! hashvec.insert("Jake", "Dog");
 //! 
-//! // Push values onto the hashvec (Vector-style)
+//! // Push a value onto the hashvec (Vector-style)
 //! // Pushing overwrites existing keys' entries and moves them to the end
-//! hashvec.push(("Salad", "Wolf"));
-//! hashvec.push(("Finn", "Human"));
-//! hashvec.push(("Jake", "Dog"));
 //! hashvec.push(("Susie", "Squid"));
 //! 
 //! // Access a value by key
@@ -54,7 +56,7 @@
 //! assert_eq!(*hashvec.get(&"Sock").unwrap(), "Guinea Pig");
 //! 
 //! // Remove an entry
-//! hashvec.remove(&"Doug");
+//! hashvec.remove_key(&"Doug");
 //! assert_eq!(hashvec.get(&"Doug"), None);
 //! 
 //! // Swap the locations of two entries by their keys
@@ -108,6 +110,15 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
         }
     }
 
+    /// Creates a hashvec from a vector of key-value pairs.
+    /// 
+    /// Internally, this uses [`HashVec::append_vec()`], which means that redundant keys' entries will be overwritten and moved to the end of the hashvec sequentially.
+    pub fn from_vec(v: Vec<(K, V)>) -> HashVec<K, V> {
+        let mut new_hashvec = HashVec::with_capacity(v.len());
+        new_hashvec.append_vec(v);
+        new_hashvec
+    }
+
     /// Returns the number of elements the hashvec can hold without reallocating.
     pub fn capacity(&self) -> usize {
         self.entries.capacity().min(self.order.capacity())
@@ -154,7 +165,7 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
     /// Panics if the new capacity either overflows `usize` or exceeds `isize::MAX` bytes.
     pub fn push(&mut self, entry: (K, V)) {
         if self.contains_key(&entry.0) {
-            self.remove(&entry.0);
+            self.remove_key(&entry.0);
         }
 
         let key_hash = calculate_hash(&entry.0);
@@ -176,6 +187,28 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
                 Some(entry)
             },
             None => None
+        }
+    }
+
+    /// Appends all entries of `other` into `Self`, leaving `other` empty.
+    /// 
+    /// # Panics
+    /// Panics if the number of elements in the hashvec either overflows `usize` or exceeds `isize::MAX` bytes
+    pub fn append(&mut self, other: &mut HashVec<K, V>) {
+        let mut other_entries: Vec<(K, V)> = Vec::new();
+        other_entries.append(&mut other.entries);
+        for (k, v) in other_entries {
+            self.push((k, v));
+        }
+        other.clear();
+    }
+
+    /// Appends a vector of key-value pairs onto the hashvec.
+    /// 
+    /// Internally, this uses [`HashVec::push()`], which means that redundant keys' entries will be overwritten and moved to the end of the hashvec sequentially.
+    pub fn append_vec(&mut self, v: Vec<(K, V)>) {
+        for entry in v {
+            self.push(entry);
         }
     }
 
@@ -271,7 +304,7 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
     }
 
     /// Removes a key from the hashvec, returning the stored key and value if the key was previously in the hashvec.
-    pub fn remove_entry(&mut self, k: &K) -> Option<(K, V)> {
+    pub fn remove_key_entry(&mut self, k: &K) -> Option<(K, V)> {
         let key_hash = calculate_hash(k);
         
         let index_opt = match self.order.get(&key_hash) {
@@ -315,8 +348,8 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
     }
 
     /// Removes a key from the hashvec, returning the stored value if the key was previously in the hashvec.
-    pub fn remove(&mut self, k: &K) -> Option<V> {
-        match self.remove_entry(k) {
+    pub fn remove_key(&mut self, k: &K) -> Option<V> {
+        match self.remove_key_entry(k) {
             Some((_, v)) => Some(v),
             None => None
         }
@@ -388,4 +421,11 @@ fn calculate_hash<K: Hash>(k: &K)-> u64 {
     let mut hasher = DefaultHasher::new();
     k.hash(&mut hasher);
     hasher.finish()
+}
+
+#[macro_export]
+macro_rules! hashvec {
+    ($($x:expr),+ $(,)?) => (
+        HashVec::from_vec(vec![$($x),+])
+    );
 }

@@ -1,21 +1,23 @@
 fn main() {
-    use hashvec::HashVec;
+    use hashvec::*;
 
     // Create a new hashvec containing pairs of animal names and species
-    let mut hashvec: HashVec<&'static str, &'static str> = HashVec::new();
+    // The hashvec! macro acts like vec!, but with key-value tuple pairs
+    let mut hashvec: HashVec<&'static str, &'static str> = hashvec![
+        ("Doug", "Kobold"),
+        ("Skye", "Hyena"),
+        ("Lee", "Shiba"),
+        ("Sock", "Man"),
+        ("Salad", "Wolf"),
+        ("Finn", "Human")
+    ];
 
-    // Insert values into the hashvec (HashMap-style)
+    // Insert a value into the hashvec (HashMap-style)
     // Inserting overwrites existing keys' entries in-place
-    hashvec.insert("Doug", "Kobold");
-    hashvec.insert("Skye", "Hyena");
-    hashvec.insert("Lee", "Shiba");
-    hashvec.insert("Sock", "Man");
+    hashvec.insert("Jake", "Dog");
 
-    // Push values onto the hashvec (Vector-style)
+    // Push a value onto the hashvec (Vector-style)
     // Pushing overwrites existing keys' entries and moves them to the end
-    hashvec.push(("Salad", "Wolf"));
-    hashvec.push(("Finn", "Human"));
-    hashvec.push(("Jake", "Dog"));
     hashvec.push(("Susie", "Squid"));
 
     // Access a value by key
@@ -52,7 +54,7 @@ fn main() {
     assert_eq!(*hashvec.get(&"Sock").unwrap(), "Guinea Pig");
 
     // Remove an entry
-    hashvec.remove(&"Doug");
+    hashvec.remove_key(&"Doug");
     assert_eq!(hashvec.get(&"Doug"), None);
 
     // Swap the locations of two entries by their keys
