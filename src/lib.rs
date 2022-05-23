@@ -177,17 +177,14 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
     pub fn pop(&mut self) -> Option<(K, V)> {
         let last_entry = self.entries.pop();
 
-        match last_entry {
-            Some(entry) => {
-                let key_hash = calculate_hash(&entry.0);
+        last_entry.map(|entry| {
+            let key_hash = calculate_hash(&entry.0);
 
-                // Stop tracking the popped entry's key
-                self.order.remove(&key_hash);
+            // Stop tracking the popped entry's key
+            self.order.remove(&key_hash);
 
-                Some(entry)
-            },
-            None => None
-        }
+            entry
+        })
     }
 
     /// Appends all entries of `other` into `Self`, leaving `other` empty.
@@ -258,18 +255,16 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
 
     /// Returns a reference to the value corresponding to the key, if it exists.
     pub fn get(&self, k: &K) -> Option<&V> {
-        match self.order.get(&calculate_hash(&k)) {
-            Some(index) => Some(&self.entries[*index].1),
-            None => None
-        }
+        self.order.get(&calculate_hash(&k)).map(|index| {
+            &self.entries[*index].1
+        })
     }
 
     /// Returns a mutable reference to the value corresponding to the key, if it exists.
     pub fn get_mut(&mut self, k: &K) -> Option<&mut V> {
-        match self.order.get(&calculate_hash(&k)) {
-            Some(index) => Some(&mut self.entries[*index].1),
-            None => None
-        }
+        self.order.get(&calculate_hash(&k)).map(|index| {
+            &mut self.entries[*index].1
+        })
     }
 
     /// Changes an entry's key, preserving and returning a reference to the associated value.
@@ -278,60 +273,48 @@ impl<K: Eq + Hash, V> HashVec<K, V> {
     pub fn rename(&mut self, old_key: &K, new_key: K) -> Option<&V> {
         let old_key_hash = calculate_hash(old_key);
 
-        let index_opt = match self.order.get(&old_key_hash) {
-            Some(index) => Some(*index),
-            None => None
-        };
+        let index_opt = self.order.get(&old_key_hash).map(|index| *index);
 
-        match index_opt {
-            Some(index) => {
-                let new_key_hash = calculate_hash(&new_key);
+        index_opt.map(|index| {
+            let new_key_hash = calculate_hash(&new_key);
 
-                // Change the entry's key
-                self.entries[index].0 = new_key;
+            // Change the entry's key
+            self.entries[index].0 = new_key;
 
-                // Stop tracking the old key hash
-                self.order.remove(&old_key_hash);
+            // Stop tracking the old key hash
+            self.order.remove(&old_key_hash);
 
-                // Start tracking the new key hash
-                self.order.insert(new_key_hash, index);
+            // Start tracking the new key hash
+            self.order.insert(new_key_hash, index);
 
-                // Return the corresponding value
-                Some(&self.entries[index].1)
-            },
-            None => None
-        }
+            // Return the corresponding value
+            &self.entries[index].1
+        })
     }
 
     /// Removes a key from the hashvec, returning the stored key and value if the key was previously in the hashvec.
     pub fn remove_key_entry(&mut self, k: &K) -> Option<(K, V)> {
         let key_hash = calculate_hash(k);
-        
-        let index_opt = match self.order.get(&key_hash) {
-            Some(index) => Some(*index),
-            None => None
-        };
 
-        match index_opt {
-            Some(index) => {
-                // Get the entry and then remove it from the hashvec entirely before returning the value
-                let value = self.entries.remove(index);
+        let index_opt = self.order.get(&key_hash).map(|index| *index);
+
+        index_opt.map(|index| {
+            // Get the entry and then remove it from the hashvec entirely before returning the value
+            let value = self.entries.remove(index);
                 
-                // Remove the corresponding entry from the order hashmap
-                self.order.remove(&key_hash);
+            // Remove the corresponding entry from the order hashmap
+            self.order.remove(&key_hash);
 
-                // Update the index on all the remaining entries which followed the one we just removed
-                for (i, (k, v)) in self.entries.iter().enumerate() {
-                    if i >= index {
-                        self.order.insert(calculate_hash(&self.entries[i].0), i);
-                    }
+            // Update the index on all the remaining entries which followed the one we just removed
+            for (i, (k, v)) in self.entries.iter().enumerate() {
+                if i >= index {
+                    self.order.insert(calculate_hash(&self.entries[i].0), i);
                 }
+            }
 
-                // Now return the value we retained earlier
-                Some(value)
-            },
-            None => None
-        }
+            // Now return the value we retained earlier
+            value
+        })
     }
     
     // Swaps the positions of entries `a` and `b` within the hashvec.
@@ -408,10 +391,7 @@ pub struct HashVecIter<'a, K: Eq + Hash, V> {
 impl<'a, K: Eq + Hash, V> Iterator for HashVecIter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
-        let result = match self.ordered_map.entries.get(self.index) {
-            Some((k, v)) => Some((k, v)),
-            None => None
-        };
+        let result = self.ordered_map.entries.get(self.index).map(|(k, v)| (k, v));
         self.index += 1;
         result
     }
